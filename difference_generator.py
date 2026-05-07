@@ -1,13 +1,33 @@
+import random
+import cv2
+
+from difference import (
+    BlurDifference,
+    ColorDifference,
+    BrightnessDifference,
+    AddObjectDifference,
+)
+
+
 class DifferenceGenerator:
     """
     Generates random non-overlapping differences on an image.
     """
 
-    def __init__(self, difference_count=5):
+    def __init__(self, difference_count=5, padding=10, min_size=30, max_size=80):
         """
         Constructor for DifferenceGenerator.
+
+        Parameters:
+            difference_count (int): number of differences to generate
+            padding (int): minimum spacing between boxes
+            min_size (int): minimum width/height of a box
+            max_size (int): maximum width/height of a box
         """
-        pass
+        self.difference_count = difference_count
+        self.padding = padding
+        self.min_size = min_size
+        self.max_size = max_size
 
     def is_overlapping(self, new_box, existing_boxes):
         """
@@ -16,16 +36,40 @@ class DifferenceGenerator:
         Returns:
             True if overlapping, False otherwise
         """
-        pass
+        x, y, w, h = new_box
+
+        for ex, ey, ew, eh in existing_boxes:
+            if not (
+                x + w + self.padding < ex
+                or ex + ew + self.padding < x
+                or y + h + self.padding < ey
+                or ey + eh + self.padding < y
+            ):
+                return True
+
+        return False
 
     def choose_random_positions(self, image):
         """
-        Selects random non-overlapping positions.
+        Selects a random position.
 
         Returns:
-            list of boxes
+            list of boxes as (x, y, w, h)
         """
-        pass
+        if image is None:
+            return []
+
+        h, w = image.shape[:2]
+
+        box_w = random.randint(self.min_size, min(self.max_size, max(self.min_size, w - 20)))
+        box_h = random.randint(self.min_size, min(self.max_size, max(self.min_size, h - 20)))
+
+        x = random.randint(10, max(10, w - box_w - 10))
+        y = random.randint(10, max(10, h - box_h - 10))
+
+        new_box = (x, y, box_w, box_h)
+
+        return [new_box]
 
     def generate(self, original_image):
         """
@@ -34,4 +78,35 @@ class DifferenceGenerator:
         Returns:
             modified_image, difference_locations
         """
-        pass
+        if original_image is None:
+            raise ValueError("original_image is None")
+
+        modified = original_image.copy()
+
+        difference_classes = [BlurDifference, ColorDifference, BrightnessDifference, AddObjectDifference]
+
+        difference_locations = []
+        
+        attempt = 0
+
+        # Try several random difference types until one succeeds
+        while attempt < 6:
+            box = self.choose_random_positions(original_image)
+            DiffClass = random.choice(difference_classes)
+            diff = DiffClass()
+            diff.apply(modified, box)
+            chosen = diff.__class__.__name__
+            attempt += 1
+
+        x, y, bw, bh = box
+
+        difference_locations.append({
+            "x": x,
+            "y": y,
+            "width": bw,
+            "height": bh,
+            "center": (x + bw // 2, y + bh // 2),
+            "type": chosen,
+        })
+
+        return modified, difference_locations
