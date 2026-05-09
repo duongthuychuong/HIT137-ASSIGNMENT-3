@@ -13,13 +13,14 @@ class GameController:
         pass
 
     def check_click(self, x, y):
+        """"
+        Temporary click handling.
+        Always returns 'correct' for testing.
         """
-        Checks if click is correct or wrong.
 
-        Returns:
-            "correct", "wrong", or "locked"
-        """
-        pass
+        self.score += 1
+
+        return "correct"
 
     def update_score(self):
         """Updates player score."""

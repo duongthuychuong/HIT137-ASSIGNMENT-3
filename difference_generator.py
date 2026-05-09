@@ -112,6 +112,7 @@ class DifferenceGenerator:
             "height": bh,
             "center": (x + bw // 2, y + bh // 2),
             "type": chosen,
+            "found": False
         })
 
         return modified, difference_locations
