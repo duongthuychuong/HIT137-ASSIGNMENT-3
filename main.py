@@ -26,7 +26,11 @@ def main():
     generator = DifferenceGenerator()
 
     # Step 3: Load and prepare image
-    original_image = processor.load_image("sample.jpg")
+    loaded = processor.load_image("assets/sample.jpg")
+    if not loaded:
+        raise RuntimeError("Failed to load image: assets/sample.jpg")
+
+    original_image = processor.get_original_image()
 
     # Step 4: Generate modified image and differences
     modified_image, difference_locations = generator.generate(original_image)

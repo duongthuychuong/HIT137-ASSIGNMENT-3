@@ -54,10 +54,10 @@ class DifferenceGenerator:
         Selects a random position.
 
         Returns:
-            list of boxes as (x, y, w, h)
+            one box as (x, y, w, h)
         """
         if image is None:
-            return []
+            return None
 
         h, w = image.shape[:2]
 
@@ -69,7 +69,7 @@ class DifferenceGenerator:
 
         new_box = (x, y, box_w, box_h)
 
-        return [new_box]
+        return new_box
 
     def generate(self, original_image):
         """
@@ -92,11 +92,16 @@ class DifferenceGenerator:
         # Try several random difference types until one succeeds
         while attempt < 6:
             box = self.choose_random_positions(original_image)
+            if box is None:
+                break
             DiffClass = random.choice(difference_classes)
             diff = DiffClass()
             diff.apply(modified, box)
             chosen = diff.__class__.__name__
             attempt += 1
+
+        if box is None:
+            return modified, difference_locations
 
         x, y, bw, bh = box
 

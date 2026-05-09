@@ -1,5 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
+import base64
+import cv2
 
 class GameDisplay:
     def __init__(self, root, original_image, modified_image, controller):
@@ -47,9 +49,20 @@ class GameDisplay:
         self.canvas.bind("<Button-1>", self.handle_image_click)
 
     def convert_cv_to_tk(self, image):
-        """Person 1 Task: Logic goes here. For now, we assume a placeholder. """
-        # This will eventually return a ImageTk.PhotoImage object
-        pass
+        """Convert a BGR OpenCV image into a Tkinter PhotoImage."""
+        if image is None:
+            return None
+
+        encoded_ok, png_data = cv2.imencode(".png", image)
+        if not encoded_ok:
+            return None
+
+        b64_data = base64.b64encode(png_data.tobytes()).decode("ascii")
+        return tk.PhotoImage(data=b64_data, format="png")
+
+    def show(self):
+        """Expose a show hook used by main()."""
+        self.root.deiconify()
 
     def handle_image_click(self, event):
         """Handles mouse click events. """

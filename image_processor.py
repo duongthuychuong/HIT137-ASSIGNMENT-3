@@ -6,7 +6,7 @@ Author: Sihao Cui (Person 1)
 
 import cv2
 import numpy as np
-from PIL import Image, ImageTk
+import tkinter as tk
 
 
 class ImageProcessor:
@@ -102,8 +102,11 @@ class ImageProcessor:
         rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         # Resize to Canvas dimensions
         resized = cv2.resize(rgb, self._display_size, interpolation=cv2.INTER_AREA)
-        pil_img = Image.fromarray(resized)
-        photo = ImageTk.PhotoImage(pil_img)
+        # Build a Tkinter PhotoImage directly from encoded PNG bytes.
+        encoded_ok, png_data = cv2.imencode('.png', cv2.cvtColor(resized, cv2.COLOR_RGB2BGR))
+        if not encoded_ok:
+            return
+        photo = tk.PhotoImage(data=png_data.tobytes())
 
         # Critical: keep a reference, otherwise the image will disappear
         self._photo_refs[tag] = photo
