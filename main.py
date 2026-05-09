@@ -26,14 +26,13 @@ def main():
     generator = DifferenceGenerator()
 
     # Step 3: Load and prepare image
-    loaded = processor.load_image("assets/sample.jpg")
-    if not loaded:
-        raise RuntimeError("Failed to load image: assets/sample.jpg")
-
-    original_image = processor.get_original_image()
+    original_image = processor.load_image("assets/sample.jpg")
+    original_image = processor.resize_to_window(original_image)
 
     # Step 4: Generate modified image and differences
-    modified_image, difference_locations = generator.generate(original_image)
+    modified_image, difference_locations = generator.generate(
+        processor.create_copy(original_image)
+    )
 
     # Step 5: Create game controller
     controller = GameController(difference_locations)

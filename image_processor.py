@@ -1,3 +1,6 @@
+import cv2
+
+
 class ImageProcessor:
     """
     Handles image loading, resizing, and preparation.
@@ -11,7 +14,8 @@ class ImageProcessor:
         """
         Constructor for ImageProcessor.
         """
-        pass
+        self.max_width = max_width
+        self.max_height = max_height
 
     def load_image(self, image_path):
         """
@@ -23,7 +27,12 @@ class ImageProcessor:
         Returns:
             image: Loaded image
         """
-        pass
+        image = cv2.imread(image_path)
+
+        if image is None:
+            raise FileNotFoundError(f"Could not load image: {image_path}")
+
+        return image
 
     def resize_to_window(self, image):
         """
@@ -35,7 +44,22 @@ class ImageProcessor:
         Returns:
             resized image
         """
-        pass
+        if image is None:
+            raise ValueError("Cannot resize image because image is None")
+
+        height, width = image.shape[:2]
+
+        width_ratio = self.max_width / width
+        height_ratio = self.max_height / height
+
+        scale = min(width_ratio, height_ratio)
+
+        new_width = int(width * scale)
+        new_height = int(height * scale)
+
+        resized_image = cv2.resize(image, (new_width, new_height))
+
+        return resized_image
 
     def create_copy(self, image):
         """
@@ -47,4 +71,7 @@ class ImageProcessor:
         Returns:
             copied image
         """
-        pass
+        if image is None:
+            raise ValueError("Cannot copy image because image is None")
+
+        return image.copy()
