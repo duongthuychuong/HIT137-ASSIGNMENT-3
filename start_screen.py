@@ -40,11 +40,19 @@ class StartScreen:
         """
         Creates the start screen UI.
         """
-        self.root.geometry("900x550")
+        self.center_window(900, 550)
 
         self.create_title()
         self.create_description()
         self.create_choose_button()
+
+    def center_window(self, width, height):
+        """Position the window in the center of the screen."""
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+        x_pos = (screen_width - width) // 2
+        y_pos = (screen_height - height) // 2
+        self.root.geometry(f"{width}x{height}+{x_pos}+{y_pos}")
 
     def create_title(self):
         """

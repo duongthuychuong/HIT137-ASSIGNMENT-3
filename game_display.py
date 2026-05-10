@@ -9,6 +9,8 @@ from game_controller import GameController
 
 
 class GameDisplay:
+    GAME_TOP_HEIGHT = 120
+
     def __init__(self, root, original_image, modified_image, controller):
         self.root = root
         self.root.title("Spot the Difference")
@@ -30,6 +32,7 @@ class GameDisplay:
         self.mistake_label = None
         self.message_label = None
         self.remaining_label = None
+        self.differences_revealed = False
 
         self.setup_ui()
 
@@ -108,6 +111,9 @@ class GameDisplay:
         return ImageTk.PhotoImage(pil_image)
 
     def handle_image_click(self, event):
+        if self.differences_revealed:
+            return
+
         offset_x = self.tk_original.width() + self.image_gap
 
         if event.x < offset_x:
@@ -130,7 +136,9 @@ class GameDisplay:
 
         elif result == "locked":
             self.message_label.config(text="Game Over!", fg="red")
-            messagebox.showinfo("Game Over", "Too many mistakes!")
+            found = self.controller.score
+            total = len(self.controller.differences)
+            messagebox.showinfo("Game Over", f"Game Over!\nToo many mistakes!\nDifferences found: {found}/{total}")
 
         self.update_labels()
 
@@ -159,6 +167,7 @@ class GameDisplay:
                 self.draw_found_marker(x, y, "blue")
                 diff["found"] = True
 
+        self.differences_revealed = True
         self.message_label.config(text="Differences revealed!", fg="blue")
         self.update_labels()
 
@@ -190,9 +199,11 @@ class GameDisplay:
             self.original_image = original_image
             self.modified_image = modified_image
             self.controller = GameController(difference_locations)
+            self.differences_revealed = False
 
             self.draw_images()
             self.update_labels()
+            self.resize_window_to_image(original_image)
 
             self.message_label.config(
                 text="New image loaded. Find the differences!",
@@ -204,3 +215,9 @@ class GameDisplay:
 
     def show(self):
         self.root.deiconify()
+
+    def resize_window_to_image(self, image):
+        """Resize the window to fit the image and top controls."""
+        image_height = image.shape[0]
+        total_height = image_height + self.GAME_TOP_HEIGHT
+        self.root.geometry(f"{self.root.winfo_screenwidth()}x{total_height}")

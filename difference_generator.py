@@ -49,7 +49,7 @@ class DifferenceGenerator:
 
         return False
 
-    def choose_random_positions(self, image):
+    def choose_random_positions(self, image, existing_boxes=None):
         """
         Selects a random position.
 
@@ -60,16 +60,26 @@ class DifferenceGenerator:
             return None
 
         h, w = image.shape[:2]
+        existing_boxes = existing_boxes or []
 
-        box_w = random.randint(self.min_size, min(self.max_size, max(self.min_size, w - 20)))
-        box_h = random.randint(self.min_size, min(self.max_size, max(self.min_size, h - 20)))
+        attempts = 0
+        max_attempts = 100
 
-        x = random.randint(10, max(10, w - box_w - 10))
-        y = random.randint(10, max(10, h - box_h - 10))
+        while attempts < max_attempts:
+            box_w = random.randint(self.min_size, min(self.max_size, max(self.min_size, w - 20)))
+            box_h = random.randint(self.min_size, min(self.max_size, max(self.min_size, h - 20)))
 
-        new_box = (x, y, box_w, box_h)
+            x = random.randint(10, max(10, w - box_w - 10))
+            y = random.randint(10, max(10, h - box_h - 10))
 
-        return new_box
+            new_box = (x, y, box_w, box_h)
+
+            if not self.is_overlapping(new_box, existing_boxes):
+                return new_box
+
+            attempts += 1
+
+        return None
 
     def generate(self, original_image):
         """
@@ -90,29 +100,29 @@ class DifferenceGenerator:
         attempt = 0
 
         # Try several random difference types until one succeeds
-        while attempt < 6:
-            box = self.choose_random_positions(original_image)
+        boxes = []
+
+        while attempt < self.difference_count:
+            box = self.choose_random_positions(original_image, boxes)
             if box is None:
                 break
+
             DiffClass = random.choice(difference_classes)
             diff = DiffClass()
             diff.apply(modified, box)
             chosen = diff.__class__.__name__
             attempt += 1
+            boxes.append(box)
+            x, y, bw, bh = box
 
-        if box is None:
-            return modified, difference_locations
-
-        x, y, bw, bh = box
-
-        difference_locations.append({
-            "x": x,
-            "y": y,
-            "width": bw,
-            "height": bh,
-            "center": (x + bw // 2, y + bh // 2),
-            "type": chosen,
-            "found": False
-        })
+            difference_locations.append({
+                "x": x,
+                "y": y,
+                "width": bw,
+                "height": bh,
+                "center": (x + bw // 2, y + bh // 2),
+                "type": chosen,
+                "found": False
+            })
 
         return modified, difference_locations
