@@ -114,6 +114,13 @@ class GameDisplay:
         if self.differences_revealed:
             return
 
+        if self.controller.is_game_complete():
+            self.message_label.config(
+                text="You already found all differences!",
+                fg="green"
+            )
+            return
+
         offset_x = self.tk_original.width() + self.image_gap
 
         if event.x < offset_x:
@@ -126,19 +133,37 @@ class GameDisplay:
 
         if result == "correct":
             self.draw_found_marker(click_x, click_y, "red")
-            self.message_label.config(text="Correct!", fg="green")
 
             if self.controller.is_game_complete():
-                self.message_label.config(text="You found all differences!", fg="green")
+                self.message_label.config(
+                    text="You found all differences!",
+                    fg="green"
+                )
+            else:
+                self.message_label.config(
+                    text="Correct!",
+                    fg="green"
+                )
 
         elif result == "wrong":
-            self.message_label.config(text="Wrong click!", fg="orange")
+            self.message_label.config(
+                text="Wrong click!",
+                fg="orange"
+            )
 
         elif result == "locked":
-            self.message_label.config(text="Game Over!", fg="red")
+            self.message_label.config(
+                text="Game Over!",
+                fg="red"
+            )
+
             found = self.controller.score
             total = len(self.controller.differences)
-            messagebox.showinfo("Game Over", f"Game Over!\nToo many mistakes!\nDifferences found: {found}/{total}")
+
+            messagebox.showinfo(
+                "Game Over",
+                f"Game Over!\nToo many mistakes!\nDifferences found: {found}/{total}"
+            )
 
         self.update_labels()
 

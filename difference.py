@@ -56,11 +56,65 @@ class BrightnessDifference(Difference):
 
 
 class AddObjectDifference(Difference):
-    """Flips the region horizontally to simulate an added object."""
+    """
+    Adds a random transparent PNG object onto the image.
+    """
+
     def apply(self, image, box):
-        roi = self.get_roi(image, box)
+        import random
+        import cv2
+        import os
 
-        flipped = cv2.flip(roi, 1)  # horizontal flip
+        x, y, w, h = box
 
-        self.set_roi(image, box, flipped)
+        object_files = [
+            "ball.png",
+            "banana.png",
+            "bird.png",
+            "cat.png",
+            "leaf.png"
+        ]
+
+        chosen_file = random.choice(object_files)
+        object_path = os.path.join("assets", chosen_file)
+
+        sticker = cv2.imread(object_path, cv2.IMREAD_UNCHANGED)
+
+        if sticker is None:
+            print(f"Could not load object: {object_path}")
+            return image
+
+        if len(sticker.shape) < 3 or sticker.shape[2] != 4:
+            print(f"Object has no transparent background: {object_path}")
+            return image
+
+        sticker_size = random.randint(
+            max(20, min(w, h) // 2),
+            min(w, h)
+        )
+
+        sticker = cv2.resize(sticker, (sticker_size, sticker_size))
+
+        b, g, r, a = cv2.split(sticker)
+        overlay_color = cv2.merge((b, g, r))
+        mask = cv2.merge((a, a, a)) / 255.0
+
+        pos_x = random.randint(x, x + max(1, w - sticker_size))
+        pos_y = random.randint(y, y + max(1, h - sticker_size))
+
+        roi = image[
+            pos_y:pos_y + sticker_size,
+            pos_x:pos_x + sticker_size
+        ]
+
+        blended = (
+            roi * (1 - mask)
+            + overlay_color * mask
+        ).astype("uint8")
+
+        image[
+            pos_y:pos_y + sticker_size,
+            pos_x:pos_x + sticker_size
+        ] = blended
+
         return image

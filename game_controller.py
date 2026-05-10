@@ -34,16 +34,6 @@ class GameController:
         """Return the number of differences not yet found."""
         return sum(1 for d in self.differences if not d.get("found", False))
 
-    def check_click(self, x, y):
-        """"
-        Temporary click handling.
-        Always returns 'correct' for testing.
-        """
-
-        self.score += 1
-
-        return "correct"
-
     def update_score(self):
         """Updates player score."""
         self.score += 1
